@@ -39,7 +39,7 @@ export const dashboardStatusFilterMap: Record<
 };
 
 const documentsDescription =
-  "Track drafts, sent envelopes, and completed agreements in one place.";
+  "Share certificates, resolutions and the other company papers.";
 
 const statusLabelMap: Record<EnvelopeStatus, string> = {
   completed: "Completed",
@@ -247,7 +247,7 @@ function EnvelopeCard({
 }) {
   const content = (
     <>
-      <span className="flex h-52 items-center justify-center rounded-2xl bg-(--surface) p-3.5 transition group-hover:bg-[#f0f0f6]">
+      <span className="flex h-52 items-center justify-center rounded-md bg-(--surface) p-3.5 transition group-hover:bg-(--surface-strong)">
         {interactive ? (
           <DocumentThumbnail envelopeId={envelope.id} title={envelope.title} />
         ) : (
@@ -292,8 +292,7 @@ function EnvelopeCard({
       </span>
     </>
   );
-  const className =
-    "group panel flex h-full flex-col gap-3.5 rounded-[1.25rem] p-3.5";
+  const className = "group panel flex h-full flex-col gap-3.5 p-3.5";
 
   if (!interactive) {
     return <div className={className}>{content}</div>;
@@ -323,7 +322,7 @@ function UploadCard({ interactive }: { interactive: boolean }) {
     </>
   );
   const className =
-    "flex h-full min-h-[17.5rem] flex-col items-center justify-center gap-2.5 rounded-[1.25rem] border-2 border-dashed border-(--border-strong) text-sm font-bold text-(--secondary)";
+    "flex h-full min-h-[17.5rem] flex-col items-center justify-center gap-2.5 rounded-lg border-2 border-dashed border-(--border-strong) text-sm font-medium text-(--secondary)";
 
   if (!interactive) {
     return <div className={className}>{content}</div>;

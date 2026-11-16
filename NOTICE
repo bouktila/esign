@@ -1,0 +1,14 @@
+NOTICE
+
+Equity-On Sign includes software from SignuDoc.
+
+SignuDoc
+Copyright (c) 2026 Nyllon Software
+https://github.com/NYLLON-SOFTWARE/SignuDoc
+
+SignuDoc is licensed under the MIT License. The copyright notice and the
+permission notice in the LICENSE file of this repository are the original
+SignuDoc notice, and they are unchanged.
+
+Third-party assets bundled with SignuDoc stay under their own licences.
+See THIRD_PARTY_NOTICES.md.

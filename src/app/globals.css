@@ -44,59 +44,60 @@
 }
 
 /*
- * Soft Studio. A pale blue-grey page, white rounded cards that sit on it
- * without borders, one violet for anything the person can act on, and
- * status shown as tinted pills. Red is kept for errors and for actions that
- * cannot be undone.
+ * Equity-On. A warm off-white page, navy for anything a person can act on,
+ * and the blue of the switch mark for charts. Status is a small label, not
+ * a capsule. Red stays for errors and for actions that cannot be undone.
+ * The accent shades match src/lib/brand-color.ts.
  */
 :root {
-  --page: #f3f4f8;
-  --bg: #f3f4f8;
+  --page: #f9f8f6;
+  --bg: #f9f8f6;
   --paper: #ffffff;
-  --paper-raised: #ffffff;
-  --fg: #1c1d2b;
-  --secondary: #575a6e;
-  --tertiary: #6e7183;
-  --placeholder: #8b8ea0;
+  --paper-raised: #fdfdfc;
+  --fg: #0f1115;
+  --secondary: #555b6d;
+  --tertiary: #6b7280;
+  --placeholder: #8b909c;
   /*
    * The accent and its shades. An install with its own color replaces all
    * of these together, from a rule the layout adds (see brand-color.ts).
    */
-  --accent: #5340d6;
-  --accent-rgb: 83 64 214;
-  --accent-hover: #4433b8;
-  --accent-soft: #ece9fd;
-  --accent-soft-hover: #e0dbfb;
-  --accent-softer: #f4f2ff;
-  --accent-ink: #4433b8;
-  --danger: #b42318;
-  --danger-hover: #912018;
-  --danger-soft: #fdebea;
+  --accent: #0b1f3b;
+  --accent-rgb: 11 31 59;
+  --accent-hover: #091a32;
+  --accent-soft: #e4e6e9;
+  --accent-soft-hover: #d3d7dc;
+  --accent-softer: #eff0f2;
+  --accent-ink: #091a32;
+  --link: #2563eb;
+  --danger: #bf2c22;
+  --danger-hover: #9c241c;
+  --danger-soft: #fdeceb;
   --success: #16704a;
   --success-soft: #e3f6ec;
   --warning: #8a5300;
   --warning-soft: #fdf1d8;
-  --surface: #f6f6fa;
-  --surface-strong: #e6e7ee;
+  --surface: #f3f1ed;
+  --surface-strong: #e6e4de;
   --shell-surface: #ffffff;
-  --border: #e6e7ee;
-  --border-strong: #cfd0dc;
-  --border-hover: #b4b6c6;
-  --hover: rgba(28, 29, 43, 0.05);
-  --shell-wash: #f3f4f8;
-  --canvas-wash: #e9eaf1;
-  --shadow-soft: 0 18px 40px rgba(28, 29, 43, 0.12);
-  --shadow-card: 0 2px 6px rgba(28, 29, 43, 0.04);
-  --shadow-lift: 0 10px 30px rgba(28, 29, 43, 0.08);
+  --border: #e5e7eb;
+  --border-strong: #c0c4ce;
+  --border-hover: #9aa0ab;
+  --hover: rgba(11, 31, 59, 0.05);
+  --shell-wash: #f9f8f6;
+  --canvas-wash: #eeece7;
+  --shadow-soft: 0 1px 2px rgba(11, 31, 59, 0.06);
+  --shadow-card: 0 1px 2px rgba(11, 31, 59, 0.04);
+  --shadow-lift: 0 1px 2px rgba(11, 31, 59, 0.06);
   --signer-1: #2563eb;
   --signer-1-tint: rgba(37, 99, 235, 0.12);
-  --signer-2: #9333ea;
-  --signer-2-tint: rgba(147, 51, 234, 0.12);
+  --signer-2: #0b1f3b;
+  --signer-2-tint: rgba(11, 31, 59, 0.1);
   --signer-3: #b45309;
   --signer-3-tint: rgba(217, 119, 6, 0.14);
   --signer-4: #047857;
   --signer-4-tint: rgba(5, 150, 105, 0.12);
-  --radius: 0.75rem;
+  --radius: 0.375rem;
 }
 
 /*
@@ -221,19 +222,21 @@
   /* A white card on the page. The main container on every screen. */
   .panel {
     position: relative;
-    border-radius: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
     background: var(--paper);
   }
 
   /* A tinted well inside a card: a signer row, a summary, an empty state. */
   .well {
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     background: var(--surface);
   }
 
   /* A card that floats above the page: a signing sheet, a popover. */
   .panel-raised {
-    border-radius: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
     background: var(--paper);
     box-shadow: var(--shadow-soft);
   }
@@ -251,14 +254,14 @@
     margin-inline: auto;
   }
 
-  /* Status pills. The color says the state; the text says it too. */
+  /* Status labels. The color says the state; the text says it too. */
   .pill {
     display: inline-flex;
     min-height: 1.625rem;
     align-items: center;
     gap: 0.375rem;
-    border-radius: 999px;
-    padding: 0.125rem 0.625rem;
+    border-radius: 2px;
+    padding: 0.125rem 0.5rem;
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.2;
@@ -286,7 +289,7 @@
   }
 
   .pill-neutral {
-    background: #eeeff4;
+    background: var(--surface);
     color: var(--secondary);
   }
 
@@ -296,7 +299,7 @@
     max-width: 100%;
     flex-wrap: wrap;
     gap: 0.125rem;
-    border-radius: 0.75rem;
+    border-radius: 6px;
     background: var(--surface-strong);
     padding: 0.25rem;
   }
@@ -307,7 +310,7 @@
     align-items: center;
     justify-content: center;
     border: 0;
-    border-radius: 0.5625rem;
+    border-radius: 4px;
     background: transparent;
     padding: 0 0.875rem;
     font-size: 0.8125rem;
@@ -337,7 +340,7 @@
     width: 100%;
     min-width: 0;
     border: 1.5px solid var(--border-strong);
-    border-radius: 0.75rem;
+    border-radius: 6px;
     background: var(--paper);
     padding: 0.625rem 1rem;
     font-size: 0.875rem;
@@ -387,7 +390,7 @@
     justify-content: center;
     gap: 0.375rem;
     border: 1.5px solid var(--border-strong);
-    border-radius: 0.75rem;
+    border-radius: 6px;
     background: var(--paper);
     padding: 0 0.875rem;
     font-size: 0.8125rem;
@@ -420,7 +423,7 @@
 
   /* A message in a tinted box: something failed, or needs attention. */
   .notice {
-    border-radius: 1rem;
+    border-radius: 6px;
     padding: 0.875rem 1.25rem;
     font-size: 0.875rem;
     font-weight: 600;

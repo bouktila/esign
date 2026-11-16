@@ -101,8 +101,7 @@ function SignupFormCard({
     <section className="panel w-full max-w-[460px] p-8 sm:p-10">
       <div className="space-y-7">
         <div className="space-y-2">
-          <p className="section-eyebrow">Create account</p>
-          <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-extrabold leading-[1.08] tracking-[-0.035em] text-(--fg)">
+          <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-(--fg)">
             Create your account
           </h1>
           {signupRule ? (
@@ -119,13 +118,8 @@ function SignupFormCard({
         ) : null}
 
         {showSuccess ? (
-          <div
-            aria-live="polite"
-            className="notice notice-success"
-          >
-            <p>
-              {successMessage ?? defaultSuccessMessage}
-            </p>
+          <div aria-live="polite" className="notice notice-success">
+            <p>{successMessage ?? defaultSuccessMessage}</p>
           </div>
         ) : null}
 
@@ -230,13 +224,12 @@ function SignupClosedCard() {
     <section className="panel w-full max-w-[460px] p-8 sm:p-10">
       <div className="space-y-7">
         <div className="space-y-2">
-          <p className="section-eyebrow">Create account</p>
-          <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-extrabold leading-[1.08] tracking-[-0.035em] text-(--fg)">
+          <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-(--fg)">
             Sign-up is closed
           </h1>
           <p className="pt-1 text-sm leading-6 text-muted-foreground">
-            New accounts are not being accepted on this site. If you were sent
-            a document to sign, use the link in that email. You do not need an
+            New accounts are not being accepted on this site. If you were sent a
+            document to sign, use the link in that email. You do not need an
             account.
           </p>
         </div>

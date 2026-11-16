@@ -103,7 +103,7 @@ function EmptyDashboardState() {
             No documents yet
           </h2>
           <p className="text-[0.9375rem] leading-6 text-(--secondary)">
-            Upload a PDF and send it for signatures in minutes.
+            Upload a share certificate, a resolution, or any other PDF.
           </p>
         </div>
         <ShellButton href="/envelopes/new">

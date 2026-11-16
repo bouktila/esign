@@ -343,8 +343,7 @@ function LiveLoginShell({
       <section className="panel w-full max-w-[460px] p-8 sm:p-10">
         <div className="space-y-7">
           <div className="space-y-2">
-            <p className="section-eyebrow">Log in</p>
-            <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-extrabold leading-[1.08] tracking-[-0.035em] text-(--fg)">
+            <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-(--fg)">
               Welcome back
             </h1>
           </div>
@@ -363,7 +362,7 @@ function LiveLoginShell({
               label="Email"
               name="login-email"
               onChange={handleChange("email")}
-              placeholder="jane@acmecorp.com"
+              placeholder="name@company.example"
               readOnly={formLocked}
               type="email"
               value={values.email}
@@ -503,7 +502,7 @@ function ForgotPasswordDialog({
               label="Email"
               name="forgot-password-email"
               onChange={onEmailChange}
-              placeholder="jane@acmecorp.com"
+              placeholder="name@company.example"
               readOnly={isSubmitting}
               type="email"
               value={email}
@@ -595,8 +594,7 @@ function ResetPasswordCard({ resetToken }: { resetToken: string }) {
     <section className="panel w-full max-w-[440px] p-8 sm:p-10">
       <div className="space-y-8">
         <div className="space-y-2">
-          <p className="section-eyebrow">Reset password</p>
-          <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-extrabold leading-[1.08] tracking-[-0.035em] text-(--fg)">
+          <h1 className="text-[clamp(1.875rem,4.5vw,2.375rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-(--fg)">
             Create a new password
           </h1>
         </div>

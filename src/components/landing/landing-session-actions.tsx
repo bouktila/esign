@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 
 type LandingSessionActionProps = {
   className?: string;
-  /** "inverse" is for a button that sits on the violet closing panel. */
+  /** "inverse" is for a button that sits on a dark panel. */
   tone?: "default" | "inverse";
 };
 
@@ -33,7 +33,7 @@ export function LandingSessionPrimaryAction({
       href={authenticated ? "/dashboard" : "/signup"}
       prefetch
     >
-      {authenticated ? "Go to dashboard" : "Start free"}
+      {authenticated ? "Go to documents" : "Create an account"}
     </Link>
   );
 }

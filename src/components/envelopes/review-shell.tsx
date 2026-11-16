@@ -76,7 +76,7 @@ function describeSignatureLevel(level: SignatureLevel, providerName: string) {
     case "qualified":
       return `Qualified electronic signatures through ${providerName}`;
     default:
-      return "SignuDoc signatures";
+      return "Simple electronic signatures";
   }
 }
 

@@ -1,3 +1,13 @@
+# Equity-On Sign
+
+Signing for company documents, for [Equity-On](https://www.equity-on.com). Share certificates, written resolutions and the papers that follow a change in who owns what.
+
+This repository is a fork of [SignuDoc](https://github.com/NYLLON-SOFTWARE/SignuDoc) by Nyllon Software, under the MIT licence. The copyright notice in `LICENSE` is unchanged. See `NOTICE`.
+
+The guide below is the upstream SignuDoc documentation and still uses that name, including the comparison with DocuSign. It is kept so this fork can be run and updated.
+
+---
+
 <p align="center">
   <img src="docs/images/banner.png" alt="SignuDoc: e-signatures you actually own. Open source and MIT licensed. Send, sign and seal documents from your own Vercel account, at $0 per seat. Shown: a signer drawing a signature on a consulting agreement, and both signers marked Signed.">
 </p>

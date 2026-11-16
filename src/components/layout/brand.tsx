@@ -47,7 +47,7 @@ export function Brand({
       {!compact ? (
         <span
           className={cn(
-            "max-w-[52vw] truncate text-[1.125rem] font-extrabold tracking-[-0.02em] sm:max-w-[22rem] sm:text-[1.1875rem]",
+            "max-w-[52vw] truncate text-[1.0625rem] font-semibold tracking-[-0.02em] sm:max-w-[22rem]",
             labelClassName,
           )}
         >
@@ -85,28 +85,22 @@ export function BrandLogo({
   );
 }
 
-/** The signature stroke on a tile in the accent color. Decorative: the link carries the name. */
+/**
+ * The Equity-On switch: a navy track with the blue knob on.
+ * Decorative: the link carries the name.
+ * Colours are the live mark (navy #0b1f3b, blue #2563eb), not the
+ * install accent, so a company's own colour does not repaint the logo.
+ */
 export function BrandMark({ className = "" }: { className?: string }) {
   return (
-    <span
+    <svg
       aria-hidden="true"
-      className={cn(
-        "inline-flex size-7 shrink-0 items-center justify-center rounded-[0.5625rem] bg-(--accent)",
-        className,
-      )}
+      className={cn("h-6 w-11 shrink-0", className)}
+      fill="none"
+      viewBox="0 0 44 24"
     >
-      <svg
-        fill="none"
-        height="16"
-        stroke="#fff"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.4"
-        viewBox="0 0 24 24"
-        width="16"
-      >
-        <path d="M4 16c3 0 4-8 7-8s2 7 5 7 2-3 4-3" />
-      </svg>
-    </span>
+      <rect fill="#0B1F3B" height="24" rx="12" width="44" />
+      <circle cx="32" cy="12" fill="#2563EB" r="8" />
+    </svg>
   );
 }
