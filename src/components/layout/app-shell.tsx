@@ -66,7 +66,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 bg-[rgba(243,244,248,0.86)] backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-(--border) bg-[color-mix(in_srgb,var(--page)_88%,transparent)] backdrop-blur-md">
         <div className="page-width flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3 sm:py-4">
           <div className="flex min-w-0 items-center gap-7">
             <Brand href="/" />
@@ -88,7 +88,7 @@ export function AppShell({
             <DropdownMenuTrigger asChild>
               <button
                 aria-label={`Account menu for ${user.name}`}
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#ffd9c2] text-[0.8125rem] font-bold text-[#7a3412] transition hover:ring-4 hover:ring-[rgba(28,29,43,0.06)]"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-(--accent) text-[0.8125rem] font-medium text-white transition hover:bg-(--accent-hover)"
                 type="button"
               >
                 {initials}
@@ -128,7 +128,7 @@ export function AppShell({
 
           <nav
             aria-label="Workspace"
-            className="-mx-1 flex w-full items-center gap-1 overflow-x-auto px-1 pb-1 md:hidden"
+            className="-mx-1 flex w-full items-center gap-0.5 overflow-x-auto px-1 pb-1 md:hidden"
           >
             {primaryNavItems.map((item) => (
               <AppNavLink
@@ -181,7 +181,7 @@ function AppNavLink({
     <Link
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-9 shrink-0 items-center rounded-[0.625rem] px-3.5 text-sm transition",
+        "inline-flex min-h-9 shrink-0 items-center rounded-[6px] px-1.5 text-sm transition sm:px-3.5",
         isActive
           ? "bg-white font-bold text-(--fg) shadow-(--shadow-xs)"
           : "font-semibold text-(--secondary) hover:bg-[rgba(255,255,255,0.6)] hover:text-(--fg)",

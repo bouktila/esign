@@ -21,6 +21,19 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow",
+          },
+        ],
+      },
+    ];
+  },
   // Finished PDFs are drawn with fonts read from disk at runtime, cut down
   // by a WebAssembly subsetter (src/lib/services/pdf-fonts.ts). Listing the
   // files here makes sure they are copied into the deployed functions.

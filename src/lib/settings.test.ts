@@ -76,21 +76,21 @@ test("a neutral install goes by the organization's name and links", () => {
   });
 });
 
-test("a neutral install with no name yet goes by SignuDoc and has no legal links", () => {
+test("a neutral install with no name yet goes by Equity-On Sign and has no legal links", () => {
   const branding = buildBranding(resolveSettings(null, {}));
 
-  assert.equal(branding.productName, "SignuDoc");
+  assert.equal(branding.productName, "Equity-On Sign");
   assert.equal(branding.organizationName, null);
   assert.equal(branding.termsUrl, null);
   assert.equal(branding.privacyUrl, null);
   assert.equal(branding.contactUrl, null);
 });
 
-test("hosted mode keeps SignuDoc's own name and pages whatever is stored", () => {
+test("hosted mode keeps Equity-On Sign's own name and pages whatever is stored", () => {
   const branding = buildBranding(resolveSettings(stored, { HOSTED_MODE: "1" }));
 
   assert.equal(branding.hosted, true);
-  assert.equal(branding.productName, "SignuDoc");
+  assert.equal(branding.productName, "Equity-On Sign");
   assert.equal(branding.organizationName, null);
   assert.equal(branding.termsUrl, "/terms");
   assert.equal(branding.privacyUrl, "/privacy");

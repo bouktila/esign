@@ -127,6 +127,7 @@ function applySecurityHeaders(response: NextResponse, pathname: string) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Robots-Tag", "noindex, nofollow");
 
   if (isProductionEnvironment()) {
     response.headers.set(
@@ -145,7 +146,6 @@ function applySecurityHeaders(response: NextResponse, pathname: string) {
   }
 
   response.headers.set("Referrer-Policy", "no-referrer");
-  response.headers.set("X-Robots-Tag", "noindex, nofollow");
 
   if (!response.headers.has("Cache-Control")) {
     response.headers.set("Cache-Control", "private, no-store");

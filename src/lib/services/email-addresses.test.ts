@@ -56,14 +56,14 @@ test("characters that mean something in an email header are dropped from the nam
   );
 });
 
-test("an install with no name, and the hosted service, send as SignuDoc", () => {
+test("an install with no name, and the hosted service, send as Equity-On Sign", () => {
   assert.equal(
     buildEmailAddresses({ ...base, organizationName: null }).senderAddress,
-    "SignuDoc <onboarding@resend.dev>",
+    "Equity-On Sign <onboarding@resend.dev>",
   );
   assert.equal(
     buildEmailAddresses({ ...base, hosted: true }).senderAddress,
-    "SignuDoc <onboarding@resend.dev>",
+    "Equity-On Sign <onboarding@resend.dev>",
   );
 });
 

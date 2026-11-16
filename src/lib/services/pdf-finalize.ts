@@ -15,6 +15,7 @@ import { canonicalJson } from "../utils/canonical-json.ts";
 import { normalizedRectToPdfRect } from "../utils/pdf-coords.ts";
 import { embedTextFaces, type TextFace } from "./pdf-fonts.ts";
 import { sha256Hex } from "./pdf-seal.ts";
+import { PRODUCT_NAME } from "../branding.ts";
 import { getBranding } from "../settings.ts";
 import {
   finishSignerSignedPdf,
@@ -333,8 +334,8 @@ function getEnvelopeStatusLabel(status: EnvelopeRecord["status"]): string {
 
 function getCertificateTitle(envelope: EnvelopeRecord): string {
   return envelope.status === "completed"
-    ? "SignuDoc Certificate of Completion"
-    : "SignuDoc Audit Certificate";
+    ? `${PRODUCT_NAME} certificate of completion`
+    : `${PRODUCT_NAME} audit certificate`;
 }
 
 function getTerminalTimestampLabel(envelope: EnvelopeRecord): string {
@@ -1275,7 +1276,7 @@ export async function renderEnvelopeCertificatePdf(
     signers: input.signers,
   });
   pdfDocument.setTitle(`Audit certificate: ${input.envelope.title}`);
-  pdfDocument.setProducer("SignuDoc");
+  pdfDocument.setProducer(PRODUCT_NAME);
 
   return seal(pdfDocument, "certificate");
 }

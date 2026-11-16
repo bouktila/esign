@@ -1,23 +1,27 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Geist } from "next/font/google";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const geist = Geist({
   display: "swap",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-ui",
-  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "SignuDoc",
+  title: "Equity-On Sign",
   description:
-    "Free e-signature software for small businesses. Upload, send, sign — no enterprise circus required.",
+    "Sign company documents for Equity-On. Share certificates, written resolutions and the papers that follow a change in who owns what.",
   icons: {
     icon: "/icon.svg",
+  },
+  robots: {
+    follow: false,
+    index: false,
+    nocache: true,
   },
 };
 
@@ -28,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${plusJakartaSans.variable} antialiased`}>
+      <body className={`${geist.variable} antialiased`}>
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>

@@ -786,12 +786,12 @@ export function SigningLiveShell({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 bg-[rgba(243,244,248,0.88)] backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-(--border) bg-[color-mix(in_srgb,var(--page)_88%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-5">
             <Brand href="/" />
-            <div className="hidden min-w-0 border-l border-(--border-strong) pl-5 sm:block">
-              <p className="truncate text-sm font-bold text-(--fg)">
+            <div className="hidden min-w-0 border-l border-(--border) pl-5 sm:block">
+              <p className="truncate text-sm font-medium text-(--fg)">
                 {record.envelopeTitle}
               </p>
               <p className="mt-0.5 truncate text-[0.8125rem] text-(--tertiary)">
@@ -821,6 +821,14 @@ export function SigningLiveShell({
             </ShellButton>
           </div>
         </div>
+        <div className="mx-auto w-full max-w-[1320px] px-4 pb-3 sm:hidden">
+          <p className="truncate text-sm font-medium text-(--fg)">
+            {record.envelopeTitle}
+          </p>
+          <p className="mt-0.5 truncate text-[0.8125rem] text-(--tertiary)">
+            From {record.senderName}
+          </p>
+        </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-[1320px] flex-1 flex-col gap-5 px-4 pb-8 pt-1 sm:px-6">
@@ -834,7 +842,7 @@ export function SigningLiveShell({
         ) : null}
         <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-4">
-            <div className="panel rounded-[1.25rem] px-4 py-3">
+            <div className="panel px-4 py-3">
               <div className="flex flex-col gap-3 xl:grid xl:grid-cols-[1fr_auto_1fr] xl:items-center">
                 <div className="flex justify-center xl:justify-start">
                   <DocumentZoomControls
@@ -895,7 +903,7 @@ export function SigningLiveShell({
               </div>
             </div>
 
-            <div className="panel overflow-hidden rounded-[1.25rem]">
+            <div className="panel overflow-hidden">
               <div
                 className={`relative overflow-auto p-3 sm:p-6 ${
                   zoomLevel > DEFAULT_DOCUMENT_ZOOM_LEVEL
@@ -1014,9 +1022,8 @@ export function SigningLiveShell({
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-[5.25rem] xl:self-start">
-            <section className="panel rounded-[1.25rem] p-5">
-              <p className="section-eyebrow">Current signer</p>
-              <div className="mt-3 flex items-center gap-3">
+            <section className="panel p-5">
+              <div className="flex items-center gap-3">
                 <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-(--accent-soft) text-[0.9375rem] font-bold text-(--accent-ink)">
                   {getInitials(record.signer.name)}
                 </span>
@@ -1031,8 +1038,7 @@ export function SigningLiveShell({
               </div>
 
               <div className="well mt-5 p-4">
-                <p className="section-eyebrow">Ready to finish</p>
-                <p className="mt-1.5 text-[0.9375rem] font-bold text-(--fg)">
+                <p className="text-[0.9375rem] font-medium text-(--fg)">
                   {remainingFields === 0
                     ? "All required fields complete"
                     : `${remainingFields} required field${remainingFields === 1 ? "" : "s"} remaining`}
@@ -1077,13 +1083,8 @@ export function SigningLiveShell({
               </div>
             </section>
 
-            <section className="panel rounded-[1.25rem] p-5">
-              <div className="flex items-center justify-between gap-3">
-                <p className="section-eyebrow">Assigned fields</p>
-                <span className="pill pill-neutral">
-                  {actionSummaryFields.length}
-                </span>
-              </div>
+            <section className="panel p-5">
+              <h2 className="text-sm font-medium text-(--fg)">Fields</h2>
               <div className="mt-3 space-y-2">
                 {actionSummaryFields.map((field) => (
                   <FieldStatusRow
@@ -1386,7 +1387,7 @@ function SigningToolbarStatus({
   remainingFields: number;
 }) {
   return (
-    <div className="inline-flex min-h-10 items-center gap-2.5 rounded-full bg-(--surface) py-1.5 pl-2.5 pr-4">
+    <div className="inline-flex min-h-10 items-center gap-2.5 rounded-[6px] bg-(--surface) py-1.5 pl-2.5 pr-4">
       <span
         aria-hidden="true"
         className={`inline-flex size-6 items-center justify-center rounded-full ${
