@@ -11,6 +11,7 @@ import {
   withTransaction,
 } from "../db/connection.ts";
 import { canonicalJson } from "../utils/canonical-json.ts";
+import { isUniqueConstraintError } from "../db/sql-dialect.ts";
 
 export type AuditEventMetadata = Record<string, unknown> | null;
 
@@ -190,67 +191,87 @@ async function insertChainedAuditEvent(
 
   await lockEnvelopeAuditChain(input.envelopeId, database);
 
-  const previous = await database.query<{
-    rowHash: string | null;
-    sequence: number;
-  }>(
-    `
-      SELECT sequence, row_hash AS "rowHash"
-      FROM audit_events
-      WHERE envelope_id = $1 AND sequence IS NOT NULL
-      ORDER BY sequence DESC
-      LIMIT 1
-    `,
-    [input.envelopeId],
-  );
-  const previousRow = previous.rows[0];
-  const sequence = (previousRow?.sequence ?? 0) + 1;
-  const previousHash = previousRow?.rowHash ?? null;
-  const fields: ChainedFields = {
-    actorEmail: input.actorEmail ?? null,
-    actorType: input.actorType,
-    createdAt,
-    envelopeId: input.envelopeId,
-    event: input.event,
-    id,
-    ipAddress: input.ipAddress ?? null,
-    metadata: input.metadata ?? null,
-    sequence,
-    userAgent: input.userAgent ?? null,
-  };
+  // D1 cannot hold an advisory lock across statements. The unique index on
+  // (envelope, sequence) is the chain's lock: a lost race fails the insert,
+  // and the next attempt hashes the row that won. The hash function is the
+  // same one Postgres uses.
+  let fields: ChainedFields | null = null;
 
-  await database.query(
-    `
-      INSERT INTO audit_events (
-        id,
-        envelope_id,
-        event,
-        actor_type,
-        actor_email,
-        ip_address,
-        user_agent,
-        metadata,
-        created_at,
-        sequence,
-        prev_hash,
-        row_hash
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    `,
-    [
-      id,
-      input.envelopeId,
-      input.event,
-      input.actorType,
-      fields.actorEmail,
-      fields.ipAddress,
-      fields.userAgent,
-      fields.metadata,
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const previous = await database.query<{
+      rowHash: string | null;
+      sequence: number;
+    }>(
+      `
+        SELECT sequence, row_hash AS "rowHash"
+        FROM audit_events
+        WHERE envelope_id = $1 AND sequence IS NOT NULL
+        ORDER BY sequence DESC
+        LIMIT 1
+      `,
+      [input.envelopeId],
+    );
+    const previousRow = previous.rows[0];
+    const sequence = (previousRow?.sequence ?? 0) + 1;
+    const previousHash = previousRow?.rowHash ?? null;
+
+    fields = {
+      actorEmail: input.actorEmail ?? null,
+      actorType: input.actorType,
       createdAt,
+      envelopeId: input.envelopeId,
+      event: input.event,
+      id,
+      ipAddress: input.ipAddress ?? null,
+      metadata: input.metadata ?? null,
       sequence,
-      previousHash,
-      computeAuditRowHash(previousHash, fields),
-    ],
-  );
+      userAgent: input.userAgent ?? null,
+    };
+
+    try {
+      await database.query(
+        `
+          INSERT INTO audit_events (
+            id,
+            envelope_id,
+            event,
+            actor_type,
+            actor_email,
+            ip_address,
+            user_agent,
+            metadata,
+            created_at,
+            sequence,
+            prev_hash,
+            row_hash
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `,
+        [
+          id,
+          input.envelopeId,
+          input.event,
+          input.actorType,
+          fields.actorEmail,
+          fields.ipAddress,
+          fields.userAgent,
+          fields.metadata,
+          createdAt,
+          sequence,
+          previousHash,
+          computeAuditRowHash(previousHash, fields),
+        ],
+      );
+      break;
+    } catch (error) {
+      if (!isUniqueConstraintError(error) || attempt === 4) {
+        throw error;
+      }
+    }
+  }
+
+  if (!fields) {
+    throw new Error("The audit chain could not be written.");
+  }
 
   return auditEventRecordSchema.parse({
     actorEmail: fields.actorEmail,

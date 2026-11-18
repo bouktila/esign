@@ -7,6 +7,7 @@ import {
   withTransaction,
 } from "../db/connection.ts";
 import { canonicalJson } from "../utils/canonical-json.ts";
+import { isUniqueConstraintError } from "../db/sql-dialect.ts";
 
 // The install's own audit trail: changes that are not about one envelope,
 // such as a setting, a role, an identity check or a signing lock. Part 11
@@ -80,56 +81,69 @@ async function insertChained(
     SYSTEM_AUDIT_LOCK_ID,
   ]);
 
-  const previous = await database.query<{
-    rowHash: string;
-    sequence: number;
-  }>(
-    `
-      SELECT sequence, row_hash AS "rowHash"
-      FROM system_audit_events
-      ORDER BY sequence DESC
-      LIMIT 1
-    `,
-  );
-  const previousRow = previous.rows[0];
-  const fields: ChainedFields = {
-    actorEmail: input.actorEmail ?? null,
-    actorUserId: input.actorUserId ?? null,
-    createdAt: input.createdAt ?? Math.floor(Date.now() / 1000),
-    event: input.event,
-    id: randomUUID(),
-    ipAddress: input.ipAddress ?? null,
-    metadata: input.metadata ?? null,
-    sequence: (previousRow?.sequence ?? 0) + 1,
-    targetUserId: input.targetUserId ?? null,
-    userAgent: input.userAgent ?? null,
-  };
-  const previousHash = previousRow?.rowHash ?? null;
+  // Same compare-and-retry as the envelope chain. D1 has no advisory lock
+  // that spans statements, and `sequence` is unique, so a lost race retries
+  // against the new head. The hash function is unchanged.
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const previous = await database.query<{
+      rowHash: string;
+      sequence: number;
+    }>(
+      `
+        SELECT sequence, row_hash AS "rowHash"
+        FROM system_audit_events
+        ORDER BY sequence DESC
+        LIMIT 1
+      `,
+    );
+    const previousRow = previous.rows[0];
+    const fields: ChainedFields = {
+      actorEmail: input.actorEmail ?? null,
+      actorUserId: input.actorUserId ?? null,
+      createdAt: input.createdAt ?? Math.floor(Date.now() / 1000),
+      event: input.event,
+      id: randomUUID(),
+      ipAddress: input.ipAddress ?? null,
+      metadata: input.metadata ?? null,
+      sequence: (previousRow?.sequence ?? 0) + 1,
+      targetUserId: input.targetUserId ?? null,
+      userAgent: input.userAgent ?? null,
+    };
+    const previousHash = previousRow?.rowHash ?? null;
 
-  await database.query(
-    `
-      INSERT INTO system_audit_events (
-        id, sequence, event, actor_user_id, actor_email, target_user_id,
-        ip_address, user_agent, metadata, created_at, prev_hash, row_hash
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    `,
-    [
-      fields.id,
-      fields.sequence,
-      fields.event,
-      fields.actorUserId,
-      fields.actorEmail,
-      fields.targetUserId,
-      fields.ipAddress,
-      fields.userAgent,
-      fields.metadata,
-      fields.createdAt,
-      previousHash,
-      computeSystemAuditRowHash(previousHash, fields),
-    ],
-  );
+    try {
+      await database.query(
+        `
+          INSERT INTO system_audit_events (
+            id, sequence, event, actor_user_id, actor_email, target_user_id,
+            ip_address, user_agent, metadata, created_at, prev_hash, row_hash
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `,
+        [
+          fields.id,
+          fields.sequence,
+          fields.event,
+          fields.actorUserId,
+          fields.actorEmail,
+          fields.targetUserId,
+          fields.ipAddress,
+          fields.userAgent,
+          fields.metadata,
+          fields.createdAt,
+          previousHash,
+          computeSystemAuditRowHash(previousHash, fields),
+        ],
+      );
 
-  return fields;
+      return fields;
+    } catch (error) {
+      if (!isUniqueConstraintError(error) || attempt === 4) {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("The install audit chain could not be written.");
 }
 
 /**

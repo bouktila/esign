@@ -148,8 +148,8 @@ export async function listPeople(
     database,
     `
       SELECT
-        count(*) FILTER (WHERE ${MATCHES_SEARCH})::int AS total,
-        count(*) FILTER (WHERE u.role = 'admin')::int AS "administratorCount"
+        sum(CASE WHEN ${MATCHES_SEARCH} THEN 1 ELSE 0 END)::int AS total,
+        sum(CASE WHEN u.role = 'admin' THEN 1 ELSE 0 END)::int AS "administratorCount"
       FROM "user" u
     `,
     [needle],

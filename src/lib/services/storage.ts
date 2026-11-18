@@ -2,6 +2,7 @@ import { type EnvSource } from "../utils/env.ts";
 import { createBlobStorageService } from "./storage/blob.ts";
 import { resolveStorageDriver } from "./storage/driver.ts";
 import { createLocalStorageService } from "./storage/local.ts";
+import { createR2StorageService } from "./storage/r2.ts";
 import { type StorageService } from "./storage/types.ts";
 
 export {
@@ -48,5 +49,27 @@ export function createStorageService({
       return createBlobStorageService({ env });
     case "local":
       return createLocalStorageService({ env });
+    case "r2":
+      return createR2StorageService(requireR2Bucket());
   }
+}
+
+function requireR2Bucket() {
+  const bucket = r2Bucket;
+
+  if (!bucket) {
+    throw new Error(
+      "STORAGE_DRIVER=r2 needs the PDFS R2 binding. Create the equity-on-sign-staging bucket and upload the Worker.",
+    );
+  }
+
+  return bucket;
+}
+
+let r2Bucket: Parameters<typeof createR2StorageService>[0] | null = null;
+
+export function setR2Bucket(
+  bucket: Parameters<typeof createR2StorageService>[0] | null,
+) {
+  r2Bucket = bucket;
 }

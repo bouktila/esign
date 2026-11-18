@@ -18,7 +18,7 @@ const EMAIL_ENV_KEYS = ["RESEND_API_KEY"] as const;
 const DEFAULT_CAPTURE_DIR = ".data/outbox";
 const DEFAULT_CAPTURE_SENDER_ADDRESS = "dev@signudoc.localhost";
 
-export type EmailDriver = "capture" | "resend";
+export type EmailDriver = "capture" | "cloudflare" | "resend";
 
 export type EmailAttachment = {
   content: Uint8Array;
@@ -185,17 +185,45 @@ export interface EmailService {
 export function resolveEmailDriver(env: EnvSource = process.env): EmailDriver {
   const configuredDriver = env.EMAIL_DRIVER?.trim().toLowerCase();
 
-  if (!configuredDriver) {
-    return "resend";
-  }
-
-  if (configuredDriver === "capture" || configuredDriver === "resend") {
+  if (
+    configuredDriver === "capture" ||
+    configuredDriver === "cloudflare" ||
+    configuredDriver === "resend"
+  ) {
     return configuredDriver;
   }
 
-  throw new Error(
-    `Unknown EMAIL_DRIVER "${configuredDriver}". Use "resend" or "capture".`,
-  );
+  if (configuredDriver) {
+    throw new Error(
+      `Unknown EMAIL_DRIVER "${configuredDriver}". Use "resend", "cloudflare", or "capture".`,
+    );
+  }
+
+  if (sendEmailBinding) {
+    return "cloudflare";
+  }
+
+  if (env.RESEND_API_KEY?.trim()) {
+    return "resend";
+  }
+
+  // Staging sets this until the send_email binding exists. Anywhere else,
+  // a missing key stays "not connected" rather than silently dropping mail.
+  if (env.EMAIL_CAPTURE_FALLBACK === "1") {
+    return "capture";
+  }
+
+  return "resend";
+}
+
+type SendEmailBinding = {
+  send(message: unknown): Promise<void>;
+};
+
+let sendEmailBinding: SendEmailBinding | null = null;
+
+export function setSendEmailBinding(binding: SendEmailBinding | null) {
+  sendEmailBinding = binding;
 }
 
 /**
@@ -208,7 +236,11 @@ function createCaptureEmailService(
 ): EmailService {
   // Allowed in development, and for a production build that is being run on
   // localhost (which is what the end-to-end test does). Never on a real site.
-  if (env.NODE_ENV === "production" && !isLocalDeployment(env)) {
+  if (
+    env.NODE_ENV === "production" &&
+    !isLocalDeployment(env) &&
+    env.EMAIL_CAPTURE_FALLBACK !== "1"
+  ) {
     throw new Error(
       "EMAIL_DRIVER=capture drops every email and cannot be used in production.",
     );
@@ -235,34 +267,44 @@ function createCaptureEmailService(
 
     // Written under a temporary name and renamed, so anything watching the
     // outbox never reads a half-written file.
-    await mkdir(captureDir, { recursive: true });
-    await writeFile(
-      temporaryPath,
-      JSON.stringify(
-        {
-          ...buildResendPayload({ ...message, attachments: undefined }, config),
-          // The files themselves are not written out; their names, sizes
-          // and fingerprints are enough to check what would have been sent.
-          attachments: message.attachments?.map((attachment) => ({
-            bytes: attachment.content.byteLength,
-            contentType: attachment.contentType,
-            filename: attachment.filename,
-            sha256: createHash("sha256")
-              .update(attachment.content)
-              .digest("hex"),
-          })),
-          capturedAt: new Date().toISOString(),
-          messageId,
-          template: message.template,
-        },
-        null,
-        2,
-      ),
-    );
-    await rename(temporaryPath, filePath);
-    console.info(
-      `[email:capture] ${message.template} to ${message.to} -> ${filePath}`,
-    );
+    try {
+      await mkdir(captureDir, { recursive: true });
+      await writeFile(
+        temporaryPath,
+        JSON.stringify(
+          {
+            ...buildResendPayload(
+              { ...message, attachments: undefined },
+              config,
+            ),
+            // The files themselves are not written out; their names, sizes
+            // and fingerprints are enough to check what would have been sent.
+            attachments: message.attachments?.map((attachment) => ({
+              bytes: attachment.content.byteLength,
+              contentType: attachment.contentType,
+              filename: attachment.filename,
+              sha256: createHash("sha256")
+                .update(attachment.content)
+                .digest("hex"),
+            })),
+            capturedAt: new Date().toISOString(),
+            messageId,
+            template: message.template,
+          },
+          null,
+          2,
+        ),
+      );
+      await rename(temporaryPath, filePath);
+      console.info(
+        `[email:capture] ${message.template} to ${message.to} -> ${filePath}`,
+      );
+    } catch {
+      // Workers have no durable disk. Staging still accepts the message.
+      console.info(
+        `[email:capture] ${message.template} to ${message.to} (not written to disk)`,
+      );
+    }
 
     return {
       accepted: [message.to],
@@ -278,6 +320,75 @@ function createCaptureEmailService(
 
       for (const message of messages) {
         results.push(await capture(message));
+      }
+
+      return results;
+    },
+  };
+}
+
+function addressOnly(value: string): string {
+  const match = /<([^<>]+)>\s*$/.exec(value);
+
+  return (match?.[1] ?? value).trim();
+}
+
+function buildMime(
+  message: TransactionalEmailMessage,
+  from: string,
+): string {
+  const text = message.textBody.replace(/\r?\n/g, "\r\n");
+
+  return [
+    `From: ${from}`,
+    `To: ${message.to}`,
+    `Subject: ${message.subject}`,
+    "MIME-Version: 1.0",
+    "Content-Type: text/plain; charset=utf-8",
+    "",
+    text,
+  ].join("\r\n");
+}
+
+function createCloudflareEmailService(
+  resolveAddresses: () => Promise<EmailAddresses>,
+): EmailService {
+  async function send(
+    message: TransactionalEmailMessage,
+  ): Promise<EmailDeliveryResult> {
+    const binding = sendEmailBinding;
+
+    if (!binding) {
+      throw new Error(
+        "Cloudflare email needs the SEND_EMAIL binding. Until it is added, set EMAIL_CAPTURE_FALLBACK=1.",
+      );
+    }
+
+    const config = await resolveAddresses();
+    const from = addressOnly(config.senderAddress);
+    const mime = buildMime(message, config.senderAddress);
+    const emailMessage = (
+      globalThis as { EmailMessage?: new (from: string, to: string, raw: string) => unknown }
+    ).EmailMessage;
+
+    await binding.send(
+      emailMessage ? new emailMessage(from, message.to, mime) : mime,
+    );
+
+    return {
+      accepted: [message.to],
+      messageId: `cloudflare-${randomUUID()}`,
+      rejected: [],
+    };
+  }
+
+  return {
+    send: (message) => send(message),
+    async sendBatch(messages) {
+      const results: EmailDeliveryResult[] = [];
+
+      for (const message of messages) {
+        results.push(await send(message));
       }
 
       return results;
@@ -302,8 +413,14 @@ export function createEmailService({
   resendClient,
   wait = waitFor,
 }: CreateEmailServiceOptions = {}): EmailService {
-  if (!resendClient && resolveEmailDriver(env) === "capture") {
+  const driver = resolveEmailDriver(env);
+
+  if (!resendClient && driver === "capture") {
     return createCaptureEmailService(env, resolveAddresses);
+  }
+
+  if (!resendClient && driver === "cloudflare") {
+    return createCloudflareEmailService(resolveAddresses);
   }
 
   if (!resendClient) {

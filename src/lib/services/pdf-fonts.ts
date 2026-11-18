@@ -62,20 +62,54 @@ type LoadedFont = {
   characters: ReadonlySet<number>;
 };
 
+const FONT_ASSET_PATHS: Record<FontName, string> = {
+  bold: "/fonts/NotoSans-Bold.ttf",
+  cjk: "/fonts/NotoSansCJKjp-Regular.ttf",
+  regular: "/fonts/NotoSans-Regular.ttf",
+  signature: "/fonts/GreatVibes-Regular.ttf",
+};
+
 const loadedFonts = new Map<FontName, Promise<LoadedFont>>();
+
+async function readBundledBytes(
+  assetPath: string,
+  diskPath: string,
+): Promise<Uint8Array> {
+  try {
+    const assets = await import("../cloudflare/workers-env.ts")
+      .then((loaded) => loaded.env.ASSETS)
+      .catch(() => undefined);
+
+    if (assets) {
+      const response = await assets.fetch(
+        new Request(`https://assets.local${assetPath}`),
+      );
+
+      if (response.ok) {
+        return new Uint8Array(await response.arrayBuffer());
+      }
+    }
+  } catch {
+    // Node tests and `next dev` read the file from disk instead.
+  }
+
+  const buffer = await fs.readFile(diskPath);
+
+  return new Uint8Array(buffer);
+}
 
 function loadFont(name: FontName): Promise<LoadedFont> {
   let loaded = loadedFonts.get(name);
 
   if (!loaded) {
-    loaded = fs.readFile(FONT_PATHS[name]).then((buffer) => {
-      const bytes = new Uint8Array(buffer);
-
+    loaded = readBundledBytes(FONT_ASSET_PATHS[name], FONT_PATHS[name]).then(
+      (bytes) => {
       return {
         bytes,
         characters: new Set(fontkit.create(bytes).characterSet),
       };
-    });
+    },
+    );
     // A failed read is not remembered, so the next PDF tries again.
     loaded.catch(() => loadedFonts.delete(name));
     loadedFonts.set(name, loaded);
@@ -117,10 +151,18 @@ let subsetterPromise: Promise<SubsetterExports> | null = null;
 
 function loadSubsetter(): Promise<SubsetterExports> {
   if (!subsetterPromise) {
-    subsetterPromise = fs
-      .readFile(SUBSETTER_PATH)
+    subsetterPromise = readBundledBytes(
+      "/wasm/harfbuzz-subset.wasm",
+      SUBSETTER_PATH,
+    )
       .then((wasm) => WebAssembly.instantiate(wasm))
-      .then((result) => result.instance.exports as unknown as SubsetterExports);
+      .then((result) => {
+        const wrapped = result as WebAssembly.Instance &
+          WebAssembly.WebAssemblyInstantiatedSource;
+        const instance = wrapped.instance ?? wrapped;
+
+        return instance.exports as unknown as SubsetterExports;
+      });
     subsetterPromise.catch(() => {
       subsetterPromise = null;
     });
