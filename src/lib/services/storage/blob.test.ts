@@ -330,7 +330,8 @@ test("the storage driver is chosen from what is connected", () => {
     "local",
   );
   assert.equal(resolveStorageDriver({ STORAGE_DRIVER: " Blob " }), "blob");
-  assert.throws(() => resolveStorageDriver({ STORAGE_DRIVER: "r2" }), /r2/);
+  assert.equal(resolveStorageDriver({ STORAGE_DRIVER: "r2" }), "r2");
+  assert.throws(() => resolveStorageDriver({ STORAGE_DRIVER: "s3" }), /s3/);
 
   assert.equal(supportsDirectUploads(connectedEnv), true);
   assert.equal(supportsDirectUploads({}), false);

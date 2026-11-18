@@ -9,7 +9,11 @@ import type { Pool } from "pg";
 import { cache } from "react";
 
 import { type Branding } from "../branding.ts";
-import { getDb } from "../db/connection.ts";
+import {
+  getDb,
+  getSqliteAuthDatabase,
+  usesSqliteDriver,
+} from "../db/connection.ts";
 import {
   createEmailService,
   type EmailService,
@@ -32,7 +36,7 @@ import { escapeHtml } from "../utils/html.ts";
 import { isRunningSetup } from "./setup-context.ts";
 
 type CreateAppAuthOptions = {
-  database?: Pool;
+  database?: Pool | ReturnType<typeof getSqliteAuthDatabase>;
   env?: EnvSource;
   includeNextCookies?: boolean;
 };
@@ -243,10 +247,12 @@ function isPasswordBreachCheckEnabled(env: EnvSource): boolean {
 }
 
 export function createAppAuth({
-  database = getDb(),
+  database,
   env = process.env,
   includeNextCookies = true,
 }: CreateAppAuthOptions = {}) {
+  const resolvedDatabase =
+    database ?? (usesSqliteDriver(env) ? getSqliteAuthDatabase() : getDb());
   const appEnv = getEnv(env);
   const authEnv = appEnv.auth;
   const secret = requireConfigValue(
@@ -306,7 +312,7 @@ export function createAppAuth({
       useSecureCookies: baseURL.startsWith("https://"),
     },
     baseURL,
-    database,
+    database: resolvedDatabase,
     emailVerification: {
       sendOnSignIn: true,
       sendOnSignUp: true,
